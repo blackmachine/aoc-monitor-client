@@ -1,0 +1,25 @@
+{
+  "tile_width": 16,
+  "tile_height": 16,
+  "columns": 32,
+  "texture_path": "assets/crt.png",
+  "default_glyph": 32,
+  "semantic_groups": {
+    "latin_upper": {
+      "source": "ascii_upper",
+      "variants": { "default": 1, "inverted": 129 }
+    },
+    "latin_lower": {
+      "source": "ascii_lower",
+      "variants": { "default": 65, "inverted": 193 }
+    },
+    "special_block": {
+      "source": "chars:[\\]^_ !\"#$%&'()*+,-./0123456789:;<=>?",
+      "variants": { "default": 27, "inverted": 155 }
+    },
+    "at_symbol": {
+      "source": "chars:@",
+      "variants": { "default": 0, "inverted": 128 }
+    }
+  }
+}

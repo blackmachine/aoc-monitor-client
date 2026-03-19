@@ -1,0 +1,12 @@
+[package]
+name = "aoc-void"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+raylib = "5.5.1"
+voidgrid = { git = "https://github.com/blackmachine/voidgrid" }
+voidgrid-resource-packs = { git = "https://github.com/blackmachine/voidgrid" }

@@ -1,0 +1,14 @@
+{
+  "tile_width": 32,
+  "tile_height": 64,
+  "columns": 19,
+  "texture_path": "assets/plexmono.png",
+  "default_glyph": 0,
+  "semantic_groups": {
+
+    "raw": {
+      "source": "chars: !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+      "variants": { "default": 0}
+    }
+  }
+}
