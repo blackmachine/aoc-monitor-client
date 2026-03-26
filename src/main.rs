@@ -1,10 +1,11 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
 use serde::Deserialize;
 use std::error::Error;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+use std::time::Instant;
 
 use raylib::prelude::*;
 
@@ -78,18 +79,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 
 
-    let mut buf_w: u32 = 20;
-    let mut buf_h: u32 = 20;
+    let mut buf_w: u32 = 32;
+    let mut buf_h: u32 = 32;
 
     let mut vg = VoidGrid::new();
 
-    let zip_file = std::fs::File::open("crt.vpk")
-        .expect("Не удалось найти файл crtdemo.vpk");
+    // let zip_file = std::fs::File::open("crt.vpk")
+    //     .expect("Не удалось найти файл crtdemo.vpk");
 
-    let mut provider = voidgrid_resource_packs::ZipProvider::new(zip_file)
-        .expect("Не удалось прочитать структуру ZIP-архива");
+    // let mut provider = voidgrid_resource_packs::ZipProvider::new(zip_file)
+    //     .expect("Не удалось прочитать структуру ZIP-архива");
 
-    // let mut provider = voidgrid_resource_packs::DirProvider::new("res");
+    let mut provider = voidgrid_resource_packs::DirProvider::new("res");
     vg.init(&mut provider, &mut rl, &thread);
     let mut hierarchy = Hierarchy::new();
     let pack = PackLoader::load_pack(
@@ -130,6 +131,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // ---------------------------
     // let mut is_resized = false;
     let mut msg_prev = String::new();
+
+    let mut start_time: Instant;
+    start_time = Instant::now();
     
     while !rl.window_should_close() {
         let mut isOk = false;
@@ -233,16 +237,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
 
 
+        let current_time = start_time.elapsed().as_secs_f32();
 
-
-
-        if isOk {
-
-        }
-
-
+        for action in script_engine.take_actions() {
+            vg.terminal.apply_action(&mut vg.grids, action);
+        }   
             
-     
+        script_engine.sync_state(&vg.grids, &pack.buffers);
+        script_engine.run_update(current_time, &vg.events.frame_events);
+
 
         let render_list = hierarchy.collect_render_list(|b| {
             if let Some(buf) = vg.grids.get(b) {
@@ -252,6 +255,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             (0, 0, 1, 1)
         });
+
+        
+
+
+
         vg.render_offscreen(&mut rl, &thread, &render_list);
         {
             let mut d = rl.begin_drawing(&thread);

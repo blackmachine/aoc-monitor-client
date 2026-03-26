@@ -11,15 +11,11 @@
     "shaders": {
       "chromatic": "assets/chromatic.fs",
 	"scanline": "assets/scanline.fs",
-"bloom": "assets/glow.fs"
+"bloom": "assets/glow.fs",
+"blur": "assets/blur.fs"
     }
   },
   "glyphsets": {
-    "flexmono": {
-      "base": "plex",
-      "merges": []
-    },
-
     "composite": {
       "base": "c64",
       "merges": ["c64inv"]
@@ -44,7 +40,7 @@
         "name": "back",
         "width": 32,
         "height": 16,
-        "glyphset": "flexmono",
+        "glyphset": "composite",
         "z_index": -1,
         "dynamic": true,
         "parent": "main_buf",
