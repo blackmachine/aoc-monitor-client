@@ -16,6 +16,9 @@ start = 32
 bytes = [127, 192]
 start = 64
 
+[[nodes."/".layers]]
+chars = "a"
+start = 128
 
 [nodes."/:inverted"]
 source = { file = "assets/c64_inv.png", w = 16, h = 16, cols = 16 }

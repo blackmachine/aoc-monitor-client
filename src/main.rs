@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 use serde::Deserialize;
 use std::error::Error;
@@ -41,7 +41,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 
     let (tx, rx) = mpsc::channel::<Result<ServerStatus, reqwest::Error>>();
+
+    let (conn_tx, conn_rx) = mpsc::channel::<bool>();
+
     thread::spawn(move||{
+        
         let url = "http://91.214.241.217:9999/status";
 
         let client = reqwest::blocking::Client::builder()
@@ -50,6 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .expect("Не удалось инициализировать HTTP-клиент");
 
         loop {
+            conn_tx.send(true);
             println!("Запрашиваем статус у монитора...");
 
             let response_result = client.get(url).send();
@@ -72,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let _ = tx.send(Err(network_error));
             }
         }
-
+            conn_tx.send(false);
             thread::sleep(Duration::from_secs(2));
         }
     });
@@ -85,13 +90,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut vg = VoidGrid::new();
 
-    // let zip_file = std::fs::File::open("crt.vpk")
-    //     .expect("Не удалось найти файл crtdemo.vpk");
+    let zip_file = std::fs::File::open("res.vpk")
+        .expect("Не удалось найти файл crtdemo.vpk");
 
-    // let mut provider = voidgrid_resource_packs::ZipProvider::new(zip_file)
-    //     .expect("Не удалось прочитать структуру ZIP-архива");
+    let mut provider = voidgrid_resource_packs::ZipProvider::new(zip_file)
+        .expect("Не удалось прочитать структуру ZIP-архива");
 
-    let mut provider = voidgrid_resource_packs::DirProvider::new("res");
+
+
+    // let mut provider = voidgrid_resource_packs::DirProvider::new("res");
+
     vg.init( &mut rl, &thread);
     let mut hierarchy = Hierarchy::new();
     let pack = PackLoader::load_pack(
@@ -170,14 +178,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut msg= String::new();
         let mut col = Color::new(255, 255, 255, 255);
 
-        vg.grids
-            .print(main_buf)
-            .at(0, 1)
-            .fg(Color{ r: 255, g: 64, b: 64, a: 255 })
-            .write(("-"));
-
-
-
+        
         for recieved in rx.try_iter() {
             
             vg.grids.clear_buffer(main_buf);
@@ -217,7 +218,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         vg.grids
                         .print(main_buf)
                         .at(1, 0)
-                        .fg(Color{ r: 255, g: 127, b: 0, a: 255 })
+                        .fg(Color{ r: 255, g: 96, b: 0, a: 255 })
                         .write(("       \nOFFLINE", "inverted"));
                     
                 }
@@ -267,6 +268,47 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
                 
         }
+
+
+    //         if conn_rx.recv().unwrap() {
+    //     vg.grids
+    //         .print(main_buf)
+    //         .at(0, 1)
+    //         .fg(Color{ r: 0, g: 255, b: 127, a: 127 })
+    //         .write((">"));
+    // } else {
+    //     vg.grids
+    //         .print(main_buf)
+    //         .at(0, 1)
+    //         .fg(Color{ r: 255, g: 64, b: 64, a: 255 })
+    //         .write((" "));
+    // }
+
+
+
+match conn_rx.try_recv() {
+    Ok(value) => {
+        // value здесь имеет тип bool
+        if value {
+            vg.grids
+            .print(main_buf)
+            .at(0, 1)
+            .fg(Color{ r: 0, g: 255, b: 127, a: 192 })
+            .write((">"));
+        } else {
+            vg.grids
+            .print(main_buf)
+            .at(0, 1)
+            .fg(Color{ r: 0, g: 255, b: 127, a: 127 })
+            .write((" "));
+        }
+    
+    }
+    Err(_) => {
+        // println!("Отправитель исчез, данных больше не будет");
+    }
+}
+
 
         // vg.grids
         //     .print(main_buf)

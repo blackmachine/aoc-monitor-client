@@ -10,3 +10,6 @@ reqwest = { version = "0.12", features = ["json", "blocking"] }
 raylib = "5.5.1"
 voidgrid = { git = "https://github.com/blackmachine/voidgrid" }
 voidgrid-resource-packs = { git = "https://github.com/blackmachine/voidgrid" }
+
+[build-dependencies]
+winres = "0.1"
