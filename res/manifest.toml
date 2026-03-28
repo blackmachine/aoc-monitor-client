@@ -1,0 +1,49 @@
+name = "Main Terminal Scene"
+version = "1.0"
+
+[assets.atlases]
+c64 = "assets/c64.toml"
+
+[assets.palettes]
+gameboy = "assets/palettes/gameboy.toml"
+summer = "assets/palettes/myownsummer.toml"
+
+[assets.scripts]
+pack_ui = "assets/basis.rhai"
+
+[assets.shaders]
+# chromatic = "assets/shaders/chromatic.fs"
+scanline = "assets/shaders/scanline.fs"
+# bloom = "assets/glow.fs"
+
+[mounts]
+"/fonts/c64" = "c64"
+
+[glyphsets.c64]
+compose = [
+    { node = "/fonts/c64" },
+]
+
+[[scene.nodes]]
+id = "main_buf"
+type = "buffer"
+name = "main"
+width = 64
+height = 32
+glyphset = "c64"
+z_index = 3
+dynamic = false
+shaders = ["scanline"]
+
+[[scene.nodes]]
+id = "back_buf"
+type = "buffer"
+name = "back"
+width = 32
+height = 16
+glyphset = "c64"
+z_index = -1
+dynamic = true
+parent = "main_buf"
+shaders = ["scanline"]
+

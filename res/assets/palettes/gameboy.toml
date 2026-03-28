@@ -1,0 +1,8 @@
+name = "gameboy"
+
+colors = [
+    { hex = "#0F380F", name = "darkest" },
+    { hex = "#306230", name = "dark" },
+    { hex = "#8BAC0F", name = "light" },
+    { hex = "#9BBC0F", name = "lightest" },
+]

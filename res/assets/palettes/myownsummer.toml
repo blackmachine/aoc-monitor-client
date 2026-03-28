@@ -1,0 +1,8 @@
+name = "summer"
+
+colors = [
+    { hex = "#242520", name = "darkest" },
+    { hex = "#445640", name = "dark" },
+    { hex = "#51626c", name = "light" },
+    { hex = "#daab5c", name = "lightest" },
+]

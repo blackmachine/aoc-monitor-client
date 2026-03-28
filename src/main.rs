@@ -12,8 +12,6 @@ use raylib::prelude::*;
 use voidgrid::VoidGrid;
 use voidgrid::hierarchy::Hierarchy;
 use voidgrid::text_ops::TextOps;
-
-
 use voidgrid::pack_loader::PackLoader;
 
 
@@ -38,6 +36,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build();
 
     rl.set_target_fps(60);
+
+
+
 
     let (tx, rx) = mpsc::channel::<Result<ServerStatus, reqwest::Error>>();
     thread::spawn(move||{
@@ -91,13 +92,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     //     .expect("Не удалось прочитать структуру ZIP-архива");
 
     let mut provider = voidgrid_resource_packs::DirProvider::new("res");
-    vg.init(&mut provider, &mut rl, &thread);
+    vg.init( &mut rl, &thread);
     let mut hierarchy = Hierarchy::new();
     let pack = PackLoader::load_pack(
         &mut vg, 
         &mut hierarchy, 
         &mut provider, 
-        "manifest.json", 
+        "manifest.toml", 
         &mut rl, 
         &thread
     ).expect("Failed to load scene from manifest");
@@ -114,7 +115,34 @@ fn main() -> Result<(), Box<dyn Error>> {
     let window_h = buf_h * tile_h;
     rl.set_window_size(window_w as i32, window_h as i32);
 
-
+    // ========================================================================
+    // VFX: Bloom (Jimenez14 dual-filter)
+    // ========================================================================
+    // Инициализация VFX пайплайна — загружает шейдер vfx_bloom.fs и
+    // создаёт цепочку mip-текстур для downsample/upsample.
+    match voidgrid::vfx::VfxPipeline::new(&mut rl, &thread, window_w, window_h) {
+        Ok(mut vfx) => {
+            // Настройки псевдо-линеаризации и блюма — крутить по вкусу:
+            vfx.settings.gamma = 1.4;           // гамма для pseudo-linearize
+            vfx.settings.bright_boost = 2.5;    // усиление яркости перед bloom
+            vfx.settings.threshold = 0.4;       // порог яркости (ниже = больше glow)
+            vfx.settings.knee = 0.2;            // мягкость порога
+            vfx.settings.sat_start = 0.5;       // начало десатурации (яркие → белый glow)
+            vfx.settings.sat_end = 1.0;         // полная десатурация
+            vfx.settings.desat_strength = 0.6;  // сила десатурации
+            vfx.settings.sample_scale = 1.0;    // радиус tent filter при upsample
+            vfx.settings.intensity = 0.2;       // финальная сила bloom
+            // Пост-обработка bloom-слоя (после blur, до наложения):
+            vfx.settings.bloom_gamma = 1.0;     // кривая затухания (>1 = только яркие пики, мягкое затухание)
+            vfx.settings.bloom_saturation = 1.5; // насыщенность bloom (>1 = цветной, <1 = белый)
+            vfx.enabled = true;
+            vg.renderer.vfx = Some(vfx);
+            println!("VFX bloom initialized");
+        }
+        Err(e) => {
+            eprintln!("VFX bloom init failed: {}", e);
+        }
+    }
 
     // --- Rhai Initialization ---
     let mut script_engine = voidgrid::scripting::ScriptEngine::new();
@@ -142,7 +170,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut msg= String::new();
         let mut col = Color::new(255, 255, 255, 255);
 
-
+        vg.grids
+            .print(main_buf)
+            .at(0, 1)
+            .fg(Color{ r: 255, g: 64, b: 64, a: 255 })
+            .write(("-"));
 
 
 
@@ -236,6 +268,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 
         }
 
+        // vg.grids
+        //     .print(main_buf)
+        //     .at(0, 1)
+        //     .fg(Color{ r: 255, g: 64, b: 64, a: 255 })
+        //     .write((" "));
 
         let current_time = start_time.elapsed().as_secs_f32();
 
@@ -261,6 +298,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 
         vg.render_offscreen(&mut rl, &thread, &render_list);
+
+        let screen_w = rl.get_screen_width() as u32;
+        let screen_h = rl.get_screen_height() as u32;
+        vg.render_vfx(&mut rl, &thread, &render_list, screen_w, screen_h, Color::new(16, 16, 16, 255));
+
+
         {
             let mut d = rl.begin_drawing(&thread);
             d.clear_background(Color::new(16,16, 16, 255));
