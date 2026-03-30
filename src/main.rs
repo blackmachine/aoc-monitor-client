@@ -38,6 +38,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     rl.set_target_fps(60);
 
 
+    print!("Setting icon... ");
+let image_data = include_bytes!("../mc.png");
+let mut icon = Image::load_image_from_mem(".png", image_data)
+    .expect("Ошибка загрузки из памяти");
+// icon.image_format(PixelFormat::PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+
+rl.set_window_icon(&icon);
+println!("Done trying.");
 
 
     let (tx, rx) = mpsc::channel::<Result<ServerStatus, reqwest::Error>>();
